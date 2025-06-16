@@ -1,8 +1,6 @@
-import streamlit as st
 import os
 import subprocess
 import sys
-import threading
 import tkinter as tk
 from tkinter import messagebox, scrolledtext
 from pathlib import Path
@@ -80,13 +78,23 @@ def run_selected_module():
         messagebox.showerror("오류", f"{module_name} 모듈에 main.py가 없습니다.")
         return
     try:
+        # exe로 빌드된 경우 python.exe 경로를 직접 지정
+        if getattr(sys, 'frozen', False):
+            # pyinstaller로 빌드된 경우
+            python_exe = os.path.join(os.path.dirname(sys.executable), "python.exe")
+            if not os.path.exists(python_exe):
+                # 시스템 PATH에서 python 찾기
+                python_exe = "python"
+        else:
+            python_exe = sys.executable
+
         if new_window_var.get():
             subprocess.Popen(
-                [sys.executable, module_path],
+                [python_exe, module_path],
                 creationflags=subprocess.CREATE_NEW_CONSOLE
             )
         else:
-            subprocess.Popen([sys.executable, module_path])
+            subprocess.Popen([python_exe, module_path])
     except Exception as e:
         messagebox.showerror("실행 오류", str(e))
 
